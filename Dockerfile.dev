@@ -1,0 +1,20 @@
+# Development Dockerfile with Hot Reload Support
+FROM gradle:8.0-jdk17
+
+WORKDIR /app
+
+# Copy gradle files
+COPY build.gradle gradle.properties settings.gradle ./
+COPY gradle ./gradle
+COPY gradlew ./
+
+# Copy source code
+COPY grails-app ./grails-app
+COPY src ./src
+
+# Expose port
+EXPOSE 8090
+
+# Enable hot reload and run in development mode
+# The bootRun task watches for changes and restarts the app
+CMD ["./gradlew", "bootRun", "-x", "test", "-x", "configureChromeDriverBinary", "-x", "configureGeckoDriverBinary"]
