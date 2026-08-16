@@ -779,5 +779,3 @@ Use the provided Postman collection file included in the project root: `Payment-
 - Indexed queries on reference and email fields
 - Connection pooling (5 initial, 20 max connections)
 - Transaction management to ensure data consistency
-#   P a y m e n t - S e r v i c e  
- 
