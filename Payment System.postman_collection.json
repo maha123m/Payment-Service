@@ -1,0 +1,187 @@
+{
+  "info": {
+    "_postman_id": "0876b1b9-38b5-4933-ac14-04dbfd8e22e6",
+    "name": "Payment System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "37171283"
+  },
+  "item": [
+    {
+      "name": "Create Merchant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Test Store\",\r\n  \"email\": \"store@test.com\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8090/api/merchants",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8090",
+          "path": [
+            "api",
+            "merchants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-KEY",
+            "value": "",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\"reference\": \"INV-10001\",\r\n\"amount\": 120.50,\r\n\"currency\": \"USD\",\r\n\"description\": \"Order payment\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8090/api/payments",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8090",
+          "path": [
+            "api",
+            "payments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Capture Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-KEY",
+            "value": "",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\"reference\": \"INV-10001\",\r\n\"amount\": 120.50,\r\n\"currency\": \"USD\",\r\n\"description\": \"Order payment\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8090/api/payments/{INV-10001}/capture",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8090",
+          "path": [
+            "api",
+            "payments",
+            "{INV-10001}",
+            "capture"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Refund Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-KEY",
+            "value": "",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\"reference\": \"INV-10001\",\r\n\"amount\": 120.50,\r\n\"currency\": \"USD\",\r\n\"description\": \"Order payment\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8090/api/payments/{reference}/refund",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8090",
+          "path": [
+            "api",
+            "payments",
+            "{reference}",
+            "refund"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Payment Details",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "List Merchant Payments",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-KEY",
+            "value": "",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\"reference\": \"INV-10001\",\r\n\"amount\": 120.50,\r\n\"currency\": \"USD\",\r\n\"description\": \"Order payment\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8090/api/payments",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8090",
+          "path": [
+            "api",
+            "payments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Payments",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}
