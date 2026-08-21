@@ -13,7 +13,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"name\": \"Test Store\",\r\n  \"email\": \"store@test.com\"\r\n}",
+          "raw": "{\r\n  \"name\": \"test135\",\r\n  \"email\": \"test135@mm.com\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -37,18 +37,46 @@
     },
     {
       "name": "Create Payment",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const apiKey = pm.environment.get('apiKey');\r",
+              "const secretKey = pm.environment.get('secretKey');\r",
+              "\r",
+              "if (!secretKey) {\r",
+              "    throw new Error('secretKey not found in environment variables');\r",
+              "}\r",
+              "\r",
+              "pm.request.headers.add({ key: 'X-API-KEY', value: apiKey });\r",
+              "\r",
+              "const requestBody = pm.request.body.toString();\r",
+              "const signature = CryptoJS.HmacSHA256(requestBody, secretKey).toString(CryptoJS.enc.Hex);\r",
+              "\r",
+              "pm.request.headers.add({ key: 'X-SIGNATURE', value: signature });\r",
+              "\r",
+              "console.log('API Key:', apiKey);\r",
+              "console.log('Generated signature:', signature);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
       "request": {
         "method": "POST",
         "header": [
           {
             "key": "X-API-KEY",
-            "value": "",
+            "value": "merchant_1821a3b187284de5b02685b304505864",
             "type": "text"
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\"reference\": \"INV-10001\",\r\n\"amount\": 120.50,\r\n\"currency\": \"USD\",\r\n\"description\": \"Order payment\"\r\n}",
+          "raw": "{\r\n\"reference\": \"INV-10011\",\r\n\"amount\": 3,\r\n\"currency\": \"USD\",\r\n\"description\": \"Order payment\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -77,16 +105,16 @@
         "header": [
           {
             "key": "X-API-KEY",
-            "value": "",
+            "value": "merchant_f93593925c6d45aaa9227592cfaac3a7",
             "type": "text"
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\"reference\": \"INV-10001\",\r\n\"amount\": 120.50,\r\n\"currency\": \"USD\",\r\n\"description\": \"Order payment\"\r\n}"
+          "raw": ""
         },
         "url": {
-          "raw": "http://localhost:8090/api/payments/{INV-10001}/capture",
+          "raw": "http://localhost:8090/api/payments/INV-10009/capture",
           "protocol": "http",
           "host": [
             "localhost"
@@ -95,7 +123,7 @@
           "path": [
             "api",
             "payments",
-            "{INV-10001}",
+            "INV-10009",
             "capture"
           ]
         }
@@ -104,21 +132,49 @@
     },
     {
       "name": "Refund Payment",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const apiKey = pm.environment.get('apiKey');\r",
+              "const secretKey = pm.environment.get('secretKey');\r",
+              "\r",
+              "if (!secretKey) {\r",
+              "    throw new Error('secretKey not found in environment variables');\r",
+              "}\r",
+              "\r",
+              "pm.request.headers.add({ key: 'X-API-KEY', value: apiKey });\r",
+              "\r",
+              "\r",
+              "const signature = CryptoJS.HmacSHA256('', secretKey).toString(CryptoJS.enc.Hex);\r",
+              "\r",
+              "pm.request.headers.add({ key: 'X-SIGNATURE', value: signature });\r",
+              "\r",
+              "console.log('API Key:', apiKey);\r",
+              "console.log('Generated signature (empty body):', signature);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
       "request": {
         "method": "POST",
         "header": [
           {
             "key": "X-API-KEY",
-            "value": "",
+            "value": "merchant_f93593925c6d45aaa9227592cfaac3a7",
             "type": "text"
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\"reference\": \"INV-10001\",\r\n\"amount\": 120.50,\r\n\"currency\": \"USD\",\r\n\"description\": \"Order payment\"\r\n}"
+          "raw": ""
         },
         "url": {
-          "raw": "http://localhost:8090/api/payments/{reference}/refund",
+          "raw": "http://localhost:8090/api/payments/INV-10009/refund",
           "protocol": "http",
           "host": [
             "localhost"
@@ -127,7 +183,7 @@
           "path": [
             "api",
             "payments",
-            "{reference}",
+            "INV-10009",
             "refund"
           ]
         }
@@ -136,14 +192,30 @@
     },
     {
       "name": "Payment Details",
-      "request": {
-        "method": "GET",
-        "header": []
-      },
-      "response": []
-    },
-    {
-      "name": "List Merchant Payments",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const apiKey = pm.environment.get('apiKey');\r",
+              "const secretKey = pm.environment.get('secretKey');\r",
+              "\r",
+              "if (!secretKey) {\r",
+              "    throw new Error('secretKey not found in environment variables');\r",
+              "}\r",
+              "\r",
+              "pm.request.headers.add({ key: 'X-API-KEY', value: apiKey });\r",
+              "\r",
+              "const signature = CryptoJS.HmacSHA256('', secretKey).toString(CryptoJS.enc.Hex);\r",
+              "\r",
+              "pm.request.headers.add({ key: 'X-SIGNATURE', value: signature });"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
       "protocolProfileBehavior": {
         "disableBodyPruning": true
       },
@@ -152,16 +224,79 @@
         "header": [
           {
             "key": "X-API-KEY",
-            "value": "",
-            "type": "text"
+            "value": "merchant_f93593925c6d45aaa9227592cfaac3a7",
+            "type": "text",
+            "disabled": true
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\"reference\": \"INV-10001\",\r\n\"amount\": 120.50,\r\n\"currency\": \"USD\",\r\n\"description\": \"Order payment\"\r\n}"
+          "raw": ""
         },
         "url": {
-          "raw": "http://localhost:8090/api/payments",
+          "raw": "http://localhost:8090/api/payments/INV-10009",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8090",
+          "path": [
+            "api",
+            "payments",
+            "INV-10009"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Merchant Payments",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const apiKey = pm.environment.get('apiKey');\r",
+              "const secretKey = pm.environment.get('secretKey');\r",
+              "\r",
+              "if (!secretKey) {\r",
+              "    throw new Error('secretKey not found in environment variables');\r",
+              "}\r",
+              "\r",
+              "pm.request.headers.add({ key: 'X-API-KEY', value: apiKey });\r",
+              "\r",
+              "const signature = CryptoJS.HmacSHA256('', secretKey).toString(CryptoJS.enc.Hex);\r",
+              "\r",
+              "pm.request.headers.add({ key: 'X-SIGNATURE', value: signature });"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "apikey"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-KEY",
+            "value": "merchant_f93593925c6d45aaa9227592cfaac3a7",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8090/api/payments?status=REFUNDED&fromDate=2026-08-01&toDate=2026-08-31",
           "protocol": "http",
           "host": [
             "localhost"
@@ -170,6 +305,20 @@
           "path": [
             "api",
             "payments"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "REFUNDED"
+            },
+            {
+              "key": "fromDate",
+              "value": "2026-08-01"
+            },
+            {
+              "key": "toDate",
+              "value": "2026-08-31"
+            }
           ]
         }
       },
@@ -177,9 +326,44 @@
     },
     {
       "name": "List Payments",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
       "request": {
         "method": "GET",
-        "header": []
+        "header": [
+          {
+            "key": "X-API-KEY",
+            "value": "merchant_f93593925c6d45aaa9227592cfaac3a7",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "http://localhost:8090/api/payments?max=10&offset=0",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8090",
+          "path": [
+            "api",
+            "payments"
+          ],
+          "query": [
+            {
+              "key": "max",
+              "value": "10"
+            },
+            {
+              "key": "offset",
+              "value": "0"
+            }
+          ]
+        }
       },
       "response": []
     }
