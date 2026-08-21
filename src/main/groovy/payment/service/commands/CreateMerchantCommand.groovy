@@ -1,21 +1,16 @@
 package payment.service.commands
 
+import grails.validation.Validateable
+
 /**
- * Command object for creating a merchant
+ * Validates the request payload before it reaches MerchantService.
  */
-class CreateMerchantCommand {
+class CreateMerchantCommand implements Validateable {
     String name
     String email
 
     static constraints = {
         name blank: false, nullable: false
-        email blank: false, nullable: false, email: true, unique: true
-    }
-
-    CreateMerchantCommand() {}
-
-    CreateMerchantCommand(Map data) {
-        this.name = data?.name
-        this.email = data?.email
+        email blank: false, nullable: false, email: true
     }
 }

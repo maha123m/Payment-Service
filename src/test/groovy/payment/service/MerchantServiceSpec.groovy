@@ -13,7 +13,7 @@ class MerchantServiceSpec extends Specification implements ServiceUnitTest<Merch
         [Merchant]
     }
 
-    void 'createMerchant generates api key and persists merchant'() {
+    void 'createMerchant generates api key and secret key and persists merchant'() {
         when:
         def cmd = new CreateMerchantCommand(name: 'Test Store', email: 'store@test.com')
         def merchant = service.createMerchant(cmd)
@@ -23,6 +23,8 @@ class MerchantServiceSpec extends Specification implements ServiceUnitTest<Merch
         merchant.name == 'Test Store'
         merchant.email == 'store@test.com'
         merchant.apiKey
+        merchant.secretKey
+        merchant.secretKey.length() == 64 // 256 bits = 64 hex characters
         merchant.active
     }
 

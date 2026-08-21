@@ -7,9 +7,12 @@ class MerchantController extends BaseApiController {
 
     MerchantService merchantService
 
-    def save() {
+    def save(CreateMerchantCommand cmd) {
         handleRequest {
-            def cmd = new CreateMerchantCommand(request.JSON ?: [:])
+            if (!validateCommand(cmd)) {
+                return
+            }
+
             def merchant = merchantService.createMerchant(cmd)
             renderJson(201, MerchantResponse.toCreateResponse(merchant))
         }

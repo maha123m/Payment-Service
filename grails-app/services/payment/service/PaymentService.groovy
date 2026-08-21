@@ -6,6 +6,7 @@ import payment.service.enums.PaymentStatus
 import payment.service.exception.BusinessException
 import payment.service.exception.ErrorCode
 import payment.service.api.PaymentResponse
+import groovy.json.JsonSlurper
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
@@ -14,27 +15,23 @@ class PaymentService {
 
     MerchantService merchantService
 
+    CreatePaymentCommand parsePaymentCommand(String requestBody) {
+        def json = new JsonSlurper().parseText(requestBody)
+        def cmd = new CreatePaymentCommand()
+        cmd.reference = json.reference
+        cmd.amount = json.amount
+        cmd.currency = json.currency
+        cmd.description = json.description
+        cmd
+    }
+
     PaymentTransaction processPayment(String apiKey, CreatePaymentCommand cmd) {
         def merchant = merchantService.getMerchantByApiKey(apiKey)
 
-        if (!cmd.reference || cmd.amount == null || !cmd.currency) {
-            throw new BusinessException(
-                    ErrorCode.PAYMENT_MISSING_FIELDS,
-                    'Missing required fields: reference (unique payment ID), amount (greater than 0), and currency.'
-            )
-        }
-
-        if (cmd.amount <= BigDecimal.ZERO) {
-            throw new BusinessException(
-                    ErrorCode.PAYMENT_INVALID_AMOUNT, 
-                    "Amount must be greater than 0. You provided: ${cmd.amount}"
-            )
-        }
-
-        if (PaymentTransaction.findByReference(cmd.reference)) {
+        if (PaymentTransaction.findByReferenceAndMerchant(cmd.reference, merchant)) {
             throw new BusinessException(
                     ErrorCode.PAYMENT_DUPLICATE_REFERENCE, 
-                    "Payment reference '${cmd.reference}' already exists. Please use a unique reference for this payment."
+                    "Payment reference '${cmd.reference}' already exists for this merchant. Please use a unique reference."
             )
         }
 
@@ -61,8 +58,7 @@ class PaymentService {
         def payment = findOwnedPayment(
                 merchant,
                 reference,
-                ErrorCode.CAPTURE_PAYMENT_NOT_FOUND,
-                ErrorCode.CAPTURE_NOT_OWNED
+                ErrorCode.CAPTURE_PAYMENT_NOT_FOUND
         )
 
         if (payment.status != PaymentStatus.PENDING) {
@@ -82,8 +78,7 @@ class PaymentService {
         def payment = findOwnedPayment(
                 merchant,
                 reference,
-                ErrorCode.REFUND_PAYMENT_NOT_FOUND,
-                ErrorCode.REFUND_NOT_OWNED
+                ErrorCode.REFUND_PAYMENT_NOT_FOUND
         )
 
         if (payment.status != PaymentStatus.SUCCESS) {
@@ -102,8 +97,7 @@ class PaymentService {
         findOwnedPayment(
                 merchant,
                 reference,
-                ErrorCode.PAYMENT_NOT_FOUND,
-                ErrorCode.PAYMENT_NOT_OWNED
+                ErrorCode.PAYMENT_NOT_FOUND
         )
     }
 
@@ -231,16 +225,11 @@ class PaymentService {
     private PaymentTransaction findOwnedPayment(
             Merchant merchant,
             String reference,
-            ErrorCode notFoundError,
-            ErrorCode notOwnedError
+            ErrorCode notFoundError
     ) {
-        def payment = PaymentTransaction.findByReference(reference)
+        def payment = PaymentTransaction.findByReferenceAndMerchant(reference, merchant)
         if (!payment) {
             throw new BusinessException(notFoundError, 'Payment not found')
-        }
-
-        if (payment.merchant.id != merchant.id) {
-            throw new BusinessException(notOwnedError, 'Payment does not belong to this merchant')
         }
 
         payment

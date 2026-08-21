@@ -5,6 +5,22 @@ import payment.service.exception.BusinessException
 
 abstract class BaseApiController {
 
+    protected boolean validateCommand(def command) {
+        if (command.validate()) {
+            return true
+        }
+
+        renderJson(400, [
+                errorCode: 'VALIDATION_FAILED',
+                error    : 'Request validation failed',
+                fields   : command.errors.fieldErrors.collect { error -> [
+                        field  : error.field,
+                        message: error.defaultMessage
+                ] }
+        ])
+        false
+    }
+
     protected void renderJson(int status, Map body) {
         response.status = status
         response.contentType = 'application/json'
@@ -27,8 +43,7 @@ abstract class BaseApiController {
             log.error("Unexpected error", exception)
             renderJson(500, [
                     errorCode: "500",
-                    error    : "Internal server error",
-                    details  : exception.message
+                    error    : "Internal server error"
             ])
         }
     }

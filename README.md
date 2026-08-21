@@ -165,6 +165,7 @@ curl -X POST http://localhost:8090/api/merchants \
 ```http
 POST /api/payments
 X-API-KEY: merchant_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+X-SIGNATURE: <hmac-sha256-signature>
 Content-Type: application/json
 
 {
@@ -206,6 +207,7 @@ curl -X POST http://localhost:8090/api/payments \
 ```http
 POST /api/payments/{reference}/capture
 X-API-KEY: merchant_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+X-SIGNATURE: <hmac-sha256-signature>
 ```
 
 **Response:** `200 OK`
@@ -232,6 +234,7 @@ curl -X POST http://localhost:8090/api/payments/INV-12345/capture \
 ```http
 POST /api/payments/{reference}/refund
 X-API-KEY: merchant_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+X-SIGNATURE: <hmac-sha256-signature>
 ```
 
 **Response:** `200 OK`
@@ -348,19 +351,50 @@ curl -X GET "http://localhost:8090/api/payments?status=PENDING&fromDate=2026-08-
 
 ---
 
-## Authentication
+## Authentication & Request Signing
 
-All payment endpoints require the **X-API-KEY** header:
+All payment endpoints require the following headers:
 
 ```
 X-API-KEY: merchant_<unique-32-character-id>
+X-SIGNATURE: <hmac-sha256-signature>
 ```
 
-This API key is automatically generated when a merchant account is created and is required for:
+### API Key
+
+The `X-API-KEY` header identifies the merchant making the request. It is automatically generated when a merchant account is created and is required for:
 - Creating payments
 - Capturing/refunding payments
 - Listing payments
 - Getting payment details
+
+### Request Signature
+
+The `X-SIGNATURE` header ensures request integrity by verifying that the request body was not tampered with in transit.
+
+**How to generate the signature:**
+```
+signature = HMAC-SHA256(merchantSecretKey, rawRequestBody)
+```
+
+The signature is calculated using the merchant's secret key (provided when the merchant account is created) and the raw JSON request body. The result should be lowercase hexadecimal.
+
+**Important:**
+- Use the exact raw JSON body as it will be sent (do not re-serialize or reorder fields)
+- The signature should be lowercase hexadecimal
+- Never expose the secret key in requests or logs
+
+**Example (JavaScript):**
+```javascript
+const crypto = require('crypto');
+const secretKey = 'your_merchant_secret_key';
+const body = '{"amount":100,"currency":"USD","reference":"PAY-123"}';
+const signature = crypto.createHmac('sha256', secretKey).update(body).digest('hex');
+```
+
+For detailed implementation examples in JavaScript, Python, and Java, see `SIGNATURE_DOCUMENTATION.md`.
+
+### Authentication Errors
 
 If the API key is missing, invalid, or the merchant is inactive, the API returns:
 
@@ -369,6 +403,22 @@ If the API key is missing, invalid, or the merchant is inactive, the API returns
 {
   "errorCode": "30",
   "error": "Missing X-API-KEY header"
+}
+```
+
+**`401 Unauthorized` (Missing/Invalid Signature):**
+```json
+{
+  "errorCode": "33",
+  "error": "Missing X-SIGNATURE header"
+}
+```
+
+**`401 Unauthorized` (Invalid Signature):**
+```json
+{
+  "errorCode": "34",
+  "error": "Invalid request signature."
 }
 ```
 
@@ -401,6 +451,8 @@ All errors follow a consistent format with error codes and HTTP status codes:
 | **30** | 401 | Authentication | `Missing X-API-KEY header` | API request without X-API-KEY header |
 | **31** | 401 | Authentication | `Invalid API key` | X-API-KEY header contains non-existent or incorrect key |
 | **32** | 403 | Authentication | `Merchant is inactive` | Merchant account is deactivated (active=false) |
+| **33** | 401 | Authentication | `Missing X-SIGNATURE header` | API request without X-SIGNATURE header |
+| **34** | 401 | Authentication | `Invalid request signature.` | HMAC-SHA256 signature verification failed (wrong secret key, tampered body, or incorrect calculation) |
 | **40** | 404 | Capture | `Payment not found` | Attempting to capture non-existent payment reference |
 | **41** | 403 | Capture | `Payment does not belong to this merchant` | Merchant trying to capture payment created by different merchant |
 | **42** | 400 | Capture | `Cannot capture payment. Current status is '{status}'. Payment must be in PENDING status to be captured.` | Attempting to capture payment that is already SUCCESS or REFUNDED |

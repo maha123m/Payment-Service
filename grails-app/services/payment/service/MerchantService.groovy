@@ -9,24 +9,22 @@ import payment.service.exception.ErrorCode
 class MerchantService {
 
     Merchant createMerchant(CreateMerchantCommand cmd) {
+        if (Merchant.findByEmail(cmd.email)) {
+            throw new BusinessException(
+                    ErrorCode.MERCHANT_VALIDATION_FAILED,
+                    "Email '${cmd.email}' is already in use. Please use a different email address."
+            )
+        }
+
         def merchant = new Merchant(name: cmd.name, email: cmd.email)
 
         if (!merchant.save(flush: true)) {
-            def errorDetails = merchant.errors.allErrors.collect { error ->
-                if (error.field == 'email' && error.code == 'unique') {
-                    return "Email '${cmd.email}' is already in use. Please use a different email address."
-                } else if (error.field == 'email' && error.code == 'email.invalid') {
-                    return "Email '${cmd.email}' is not a valid email format."
-                } else if (error.field == 'email') {
-                    return "Email is required and must be in valid format (e.g., user@example.com)."
-                } else if (error.field == 'name') {
-                    return "Merchant name is required and cannot be empty."
-                } else {
-                    return error.defaultMessage
-                }
-            }.join('; ')
-            
-            throw new BusinessException(ErrorCode.MERCHANT_VALIDATION_FAILED, errorDetails)
+            // The domain constraint remains the final safeguard against a
+            // concurrent request creating the same email address.
+            throw new BusinessException(
+                    ErrorCode.MERCHANT_VALIDATION_FAILED,
+                    'Merchant could not be created. Please try again.'
+            )
         }
 
         merchant

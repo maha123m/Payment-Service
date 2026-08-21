@@ -17,10 +17,16 @@ class PaymentTransaction {
 
     static mapping = {
         version true
+
+        // Composite index for listing payments by merchant and status, ordered by date
+        merchant index: 'idx_payment_merchant_status_created'
+        status index: 'idx_payment_merchant_status_created'
+        dateCreated index: 'idx_payment_merchant_status_created'
     }
 
     static constraints = {
-        reference blank: false, unique: true
+        // A reference is only unique for its owning merchant.
+        reference blank: false, unique: ['merchant']
         amount min: 0.01G
         currency blank: false
         description nullable: true

@@ -14,6 +14,10 @@ info:
         version: '@info.app.version@'
         grailsVersion: '@info.app.grailsVersion@'
 spring:
+    config:
+        # Local-only credentials. The file is ignored by Git and is optional
+        # so production continues to use injected environment variables.
+        import: "optional:file:.env[.properties]"
     jmx:
         unique-names: true
     main:
@@ -117,8 +121,8 @@ environments:
             url: jdbc:postgresql://localhost:5432/payment_service
             driverClassName: org.postgresql.Driver
             dialect: org.hibernate.dialect.PostgreSQLDialect
-            username: postgres
-            password: mahamaher9988
+            username: ${SPRING_DATASOURCE_USERNAME:${POSTGRES_USER:postgres}}
+            password: ${SPRING_DATASOURCE_PASSWORD:${POSTGRES_PASSWORD}}
             pooled: true
             properties:
                 initialSize: 5
@@ -139,8 +143,8 @@ environments:
             url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/payment_service}
             driverClassName: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
             dialect: org.hibernate.dialect.PostgreSQLDialect
-            username: ${SPRING_DATASOURCE_USERNAME:postgres}
-            password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+            username: ${SPRING_DATASOURCE_USERNAME}
+            password: ${SPRING_DATASOURCE_PASSWORD}
             pooled: true
             properties:
                 initialSize: 5

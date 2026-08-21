@@ -44,6 +44,39 @@ class PaymentServiceSpec extends Specification implements ServiceUnitTest<Paymen
         payment.merchant == merchant
     }
 
+    void 'processPayment allows the same reference for different merchants'() {
+        given:
+        def firstMerchant = new Merchant(id: 1L, name: 'Store One', email: 'one@test.com', apiKey: 'key-1', active: true)
+        def secondMerchant = new Merchant(id: 2L, name: 'Store Two', email: 'two@test.com', apiKey: 'key-2', active: true)
+        merchantService.getMerchantByApiKey('key-1') >> firstMerchant
+        merchantService.getMerchantByApiKey('key-2') >> secondMerchant
+
+        def command = new CreatePaymentCommand(reference: 'INV-10001', amount: 120.50, currency: 'USD')
+
+        when:
+        def firstPayment = service.processPayment('key-1', command)
+        def secondPayment = service.processPayment('key-2', command)
+
+        then:
+        firstPayment.reference == secondPayment.reference
+        firstPayment.merchant.id != secondPayment.merchant.id
+    }
+
+    void 'processPayment rejects a duplicate reference for the same merchant'() {
+        given:
+        def merchant = new Merchant(id: 1L, name: 'Store', email: 'store@test.com', apiKey: 'key-1', active: true)
+        merchantService.getMerchantByApiKey('key-1') >> merchant
+        def command = new CreatePaymentCommand(reference: 'INV-10001', amount: 120.50, currency: 'USD')
+        service.processPayment('key-1', command)
+
+        when:
+        service.processPayment('key-1', command)
+
+        then:
+        def exception = thrown(BusinessException)
+        exception.errorCode == ErrorCode.PAYMENT_DUPLICATE_REFERENCE.code
+    }
+
     void 'capturePayment transitions pending payment to success'() {
         given:
         def merchant = new Merchant(id: 1L, name: 'Store', email: 'store@test.com', apiKey: 'key-1', active: true)

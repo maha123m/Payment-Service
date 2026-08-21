@@ -6,20 +6,39 @@ import payment.service.commands.CreatePaymentCommand
 class PaymentController extends BaseApiController {
 
     PaymentService paymentService
+    PaymentRequestSignatureService paymentRequestSignatureService
 
     def save() {
         handleRequest {
-            def cmd = new CreatePaymentCommand(request.JSON ?: [:])
-            def payment = paymentService.processPayment(request.getHeader('X-API-KEY'), cmd
+            String apiKey = request.getHeader('X-API-KEY')
+            String rawBody = request.inputStream.getText('UTF-8')
+
+            paymentRequestSignatureService.verifyCreatePayment(
+                    apiKey,
+                    request.getHeader('X-SIGNATURE'),
+                    rawBody
             )
+
+            def cmd = paymentService.parsePaymentCommand(rawBody)
+
+            if (!validateCommand(cmd)) {
+                return
+            }
+
+            def payment = paymentService.processPayment(apiKey, cmd)
             renderJson(201, PaymentResponse.toSummary(payment))
         }
     }
 
     def capture() {
         handleRequest {
+            String apiKey = request.getHeader('X-API-KEY')
+            paymentRequestSignatureService.verifyReferenceAction(
+                    apiKey,
+                    request.getHeader('X-SIGNATURE')
+            )
             def payment = paymentService.capturePayment(
-                request.getHeader('X-API-KEY'),
+                apiKey,
                 params.reference
             )
             renderJson(200, PaymentResponse.toSummary(payment))
@@ -28,8 +47,13 @@ class PaymentController extends BaseApiController {
 
     def refund() {
         handleRequest {
+            String apiKey = request.getHeader('X-API-KEY')
+            paymentRequestSignatureService.verifyReferenceAction(
+                    apiKey,
+                    request.getHeader('X-SIGNATURE')
+            )
             def payment = paymentService.refundPayment(
-                request.getHeader('X-API-KEY'),
+                apiKey,
                 params.reference
             )
             renderJson(200, PaymentResponse.toSummary(payment))
@@ -38,15 +62,25 @@ class PaymentController extends BaseApiController {
 
     def show() {
         handleRequest {
-            def payment = paymentService.getPayment(request.getHeader('X-API-KEY'), params.reference)
+            String apiKey = request.getHeader('X-API-KEY')
+            paymentRequestSignatureService.verifyReferenceAction(
+                    apiKey,
+                    request.getHeader('X-SIGNATURE')
+            )
+            def payment = paymentService.getPayment(apiKey, params.reference)
             renderJson(200, PaymentResponse.toDetail(payment))
         }
     }
 
     def index() {
         handleRequest {
+            String apiKey = request.getHeader('X-API-KEY')
+            paymentRequestSignatureService.verifyReferenceAction(
+                    apiKey,
+                    request.getHeader('X-SIGNATURE')
+            )
             def response = paymentService.listPaymentsPaginated(
-                request.getHeader('X-API-KEY'),
+                apiKey,
                 params
             )
             renderJson(200, response)
